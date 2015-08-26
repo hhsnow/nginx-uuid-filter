@@ -21,17 +21,19 @@
 
 int uuid_verify(const char *in)
 {
-    int         i;
-    const char  *cp;
+//    int         i;
+//    const char  *cp;
 
-    if (strlen(in) < 32)
+
+    if (strlen(in) != 36 )
         return -1;
-
-    for (i=0, cp = in; i < 32; i++,cp++) {
+/* @TODO - Validation
+    for (i=0, cp = in; i < 36; i++,cp++) {
         if (!isxdigit(*cp))
+        if (!isxdigit(*cp) || !( *cp == '-'))
             return -1;
     }
-
+*/
    return 0;
 }
 
@@ -330,7 +332,6 @@ ngx_http_uuid_get_uid(ngx_http_request_t *r, ngx_http_uuid_conf_t *conf)
     return ctx;
 }
 
-
 static ngx_int_t
 ngx_http_uuid_set_uid(ngx_http_request_t *r, ngx_http_uuid_ctx_t *ctx,
     ngx_http_uuid_conf_t *conf)
@@ -346,7 +347,7 @@ ngx_http_uuid_set_uid(ngx_http_request_t *r, ngx_http_uuid_ctx_t *ctx,
         ctx->uid_set[3] = ctx->uid_got[3];
     }
 
-    len = conf->name.len + 1 + 32 + conf->path.len;
+    len = conf->name.len + 1 + 36 + conf->path.len;
 
     if (conf->expires) {
         len += sizeof(expires) - 1 + 2;
@@ -367,10 +368,11 @@ ngx_http_uuid_set_uid(ngx_http_request_t *r, ngx_http_uuid_ctx_t *ctx,
     if (ctx->uid_got[3] == 0) {
         uuid_t uuid;
         uuid_generate_random(uuid);
-        ngx_hex_dump(p, (u_char *) uuid, 16);
-        p += 32;
+        char *uuid_char = ngx_palloc(r->pool, 37);
+        uuid_unparse(uuid, uuid_char);
+        p = ngx_copy(p, (u_char *) uuid_char, 36);
     } else {
-        p = ngx_cpymem(p, ctx->cookie.data, 32);
+        p = ngx_cpymem(p, ctx->cookie.data, 36);
         *p++ = '=';
     }
 
@@ -422,7 +424,7 @@ static ngx_int_t
 ngx_http_uuid_variable(ngx_http_request_t *r, ngx_http_variable_value_t *v,
     ngx_str_t *name, uint32_t *uid)
 {
-    v->len = name->len + sizeof("=00001111222233334444555566667777") - 1;
+    v->len = name->len + sizeof("=00001111D2222D3333D4444D555566667777") - 1;
     v->data = ngx_palloc(r->pool, v->len);
     if (v->data == NULL) {
         return NGX_ERROR;
@@ -611,10 +613,11 @@ ngx_http_uuid_expires(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     if (ucf->expires == NGX_ERROR) {
         return "invalid value";
     }
-
+/*  @TODO - Constant no longer exists in Nginx 
     if (ucf->expires == NGX_PARSE_LARGE_TIME) {
         return "value must be less than 68 years";
     }
+*/
 
     return NGX_CONF_OK;
 }
