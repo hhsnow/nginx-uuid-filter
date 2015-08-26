@@ -1,11 +1,17 @@
-Nginx UUID filter 
+Nginx Canonical UUID filter 
 --
 
 Description:
 --
 
 Issues identifying cookies. Based on ngx_http_userid_filter_module except that uses libuuid
-to generate random uuids AND encodes the ids in 32-bit hex format as opposed to base64 encoded.
+to generate random uuids AND encodes the ids in the canonical hex format (8-4-4-4-12) as
+opposed to base64 encoded.
+
+Build Requirements:
+--
+
+libuuid-devel
 
 Installation:
 --
@@ -29,13 +35,19 @@ Add to your Nginx config file's http block the following directives:
     uuid_name       cookie_name;
     uuid_domain     .example.com;
     uuid_path       /;
-    uuid_expires    max;
+    uuid_expires    2y;
     uuid_p3p        'CP="NOI CUR ADM OUR NOR STA NID"';
+
+Example Result Header:
+Set-Cookie: cookie_name=4b38f964-8916-4061-a8ec-bfdb8cd88e94; expires=Fri, 25-Aug-17 18:09:14 GMT; domain=.example.com; path=/
 
 Contributing:
 --
 
 Git source repositories:
+https://github.com/hhsnow/nginx-uuid-filter/tree/master
+
+Forked from:
 http://github.com/eliast/nginx-uuid-filter/tree/master
 
 Please feel free to fork the project at GitHub and submit pull requests or patches.
